@@ -1,0 +1,19 @@
+{
+  "about": "Every project, where it lives under the dev root on every PC, and how it connects. Layout.ps1 plan uses this to move or clone projects into place; Layout.ps1 index uses it for INDEX.md. Projects in a restricted domain (onlyOn) are never listed here. Add a row when you start a project.",
+  "fields": {
+    "path": "where it lives under the dev root (the same on every PC)",
+    "folder": "the folder name a PC may still have at the top of the dev root from an older flat layout",
+    "aliases": "older names for the same folder",
+    "repo": "clone URL, or null if it only exists on one PC",
+    "host": "vercel | railway | apps-script | none",
+    "status": "active | dormant",
+    "drive": "its files in the synced drive, relative to driveRoot",
+    "node": "id of the matching note in your notes app (optional)"
+  },
+  "projects": [
+    { "path": "02-ai\\ai-review-gate", "folder": "ai-review-gate", "repo": "https://github.com/OlafTheDread7/ai-review-gate.git", "host": "none", "status": "active", "drive": "02-ai", "node": null },
+    { "path": "09-stack\\dev-layout-kit", "folder": "dev-layout-kit", "aliases": ["layout"], "repo": "https://github.com/OlafTheDread7/dev-layout-kit.git", "host": "none", "status": "active", "drive": null, "node": null },
+    { "path": "08-life\\fantasy\\sleeper-control-panel", "folder": "sleeper-control-panel", "aliases": ["sleeper-panel"], "repo": "https://github.com/OlafTheDread7/sleeper-control-panel.git", "host": "apps-script", "status": "active", "drive": "08-life", "node": null },
+    { "path": "04-business\\clients\\acme-plumbing", "folder": "acme-plumbing", "repo": null, "host": "vercel", "status": "active", "drive": "04-business\\clients\\acme-plumbing", "node": "acme-plumbing" }
+  ]
+}

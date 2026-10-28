@@ -1,0 +1,23 @@
+{
+  "about": "The filing standard. The same on every PC. Layout.ps1 reads this; edit it here, not in the script.",
+  "version": 1,
+  "devRoot": "C:\\dev",
+  "driveRoot": "G:\\My Drive",
+  "hubFolder": "notes",
+  "indexIntro": "Read AGENTS.md first for where things live and CLAUDE.md for the rules, then the project's README. Paths are relative to C:\\dev and are the same on every PC.",
+  "devExtras": ["_archive", "_system", "_system\\manifests\\pending", "_system\\manifests\\done", "_system\\logs"],
+  "driveExtras": ["_archive"],
+  "privateDriveFolders": ["06-money", "08-life\\photos"],
+  "domains": [
+    { "num": "00", "slug": "inbox", "folder": "00-inbox", "label": "Inbox", "about": "Anything not filed yet. Empty it weekly.", "dev": false, "groups": [], "drive": [] },
+    { "num": "01", "slug": "core", "folder": "01-core", "label": "Me", "about": "Personal site, bio, headshots, writing voice.", "dev": [], "groups": [], "drive": ["bio", "brand", "writing"] },
+    { "num": "02", "slug": "ai", "folder": "02-ai", "label": "AI & Agents", "about": "Prompts, agent settings, review tooling.", "dev": [], "groups": [], "drive": ["prompts"] },
+    { "num": "03", "slug": "work", "folder": "03-work", "label": "Day job", "about": "Employer code and data. Lives on the work PC only and never syncs anywhere.", "onlyOn": ["WORKPC"], "dev": ["data", "docs", "scripts"], "groups": [], "drive": false },
+    { "num": "04", "slug": "business", "folder": "04-business", "label": "Business", "about": "Client sites (clients\\<repo>) and client files.", "dev": [], "groups": ["clients"], "drive": ["clients", "admin", "marketing"] },
+    { "num": "05", "slug": "products", "folder": "05-products", "label": "Products", "about": "Apps and tools other people use.", "dev": [], "groups": [], "drive": [] },
+    { "num": "06", "slug": "money", "folder": "06-money", "label": "Money", "about": "Taxes, statements, budgets and finance tools.", "dev": [], "groups": [], "drive": ["taxes", "statements"] },
+    { "num": "07", "slug": "creative", "folder": "07-creative", "label": "Writing & Creative", "about": "Blog, writing, video.", "dev": [], "groups": [], "drive": [] },
+    { "num": "08", "slug": "life", "folder": "08-life", "label": "Home & Play", "about": "Hobbies, games, fantasy football tools, photos.", "dev": [], "groups": ["fantasy"], "drive": ["photos"] },
+    { "num": "09", "slug": "stack", "folder": "09-stack", "label": "Tech Stack", "about": "Machine setup and infrastructure scripts.", "dev": [], "groups": [], "drive": [] }
+  ]
+}

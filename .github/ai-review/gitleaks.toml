@@ -1,0 +1,41 @@
+# AI Review: gitleaks settings. gitleaks' own rules, plus the keys these sites
+# publish on purpose, so a form key on a contact page doesn't hold a deploy.
+# Anything listed here must be safe to show the world.
+
+title = "AI Review gitleaks config"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Browser keys that are public by design"
+regexTarget = "line"
+regexes = [
+  # Web3Forms access key in a contact form, or in the quiz config
+  '''name=["']access_key["']''',
+  '''\baccessKey["']?\s*:''',
+  # hCaptcha / reCAPTCHA site keys
+  '''data-sitekey=''',
+  '''\bsitekey\s*[:=]''',
+  # Stripe publishable keys
+  '''\bpk_(live|test)_[0-9A-Za-z]{10,}''',
+]
+
+[[allowlists]]
+description = "IndexNow key in the IndexNow workflow (the same key is published as a .txt file)"
+condition = "AND"
+paths = ['''(^|/)\.github/workflows/indexnow\.ya?ml$''']
+regexTarget = "line"
+regexes = ['''^\s*KEY:\s*["']?[0-9a-f]{32}["']?\s*$''']
+
+[[allowlists]]
+description = "Files that hold public keys or other people's hashes"
+paths = [
+  # IndexNow and Bing site-verification files
+  '''(^|/)[0-9a-f]{32}\.txt$''',
+  '''(^|/)BingSiteAuth\.xml$''',
+  # Lockfiles carry integrity hashes, not secrets
+  '''(^|/)package-lock\.json$''',
+  '''(^|/)yarn\.lock$''',
+  '''(^|/)pnpm-lock\.yaml$''',
+]

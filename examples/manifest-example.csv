@@ -1,0 +1,8 @@
+action,source,dest,note
+mkdir,,C:\dev\04-business\clients,
+move,C:\Users\me\Desktop\acme-site,C:\dev\04-business\clients\acme-plumbing,old copy on the desktop
+move,G:\My Drive\Acme*,G:\My Drive\04-business\clients\,client files into the client folder
+recycle-dup,C:\Users\me\Downloads\acme-logo (1).png,G:\My Drive\04-business\clients\acme-plumbing\logo.png,second download of the same logo
+recycle,C:\Users\me\Downloads\setup-old.exe,,installer nobody needs
+prune,C:\Users\me\Desktop\old-projects,,
+note,C:\dev\scratch,,decide what this is

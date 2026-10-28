@@ -1,0 +1,10 @@
+# Machine-specific move lists and logs never go in the repo
+_system/
+manifests/
+*.log
+
+.env
+.env.*
+
+# Reviewer notes drafted before install
+_gate/

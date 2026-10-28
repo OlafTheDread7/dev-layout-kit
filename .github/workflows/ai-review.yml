@@ -1,0 +1,108 @@
+# AI Review — the ship gate.
+# Every push to main/master gets three plain checks (what the deploy would publish,
+# a gitleaks secret scan, a dependency audit) and then a Claude review for security
+# and architecture problems, before it goes live. Vercel (Deployment Checks) and
+# Railway (Wait for CI) hold the deploy until this check passes. New critical, high
+# and medium findings open a GitHub issue labelled ai-review.
+#
+# Needs one repo secret: CLAUDE_CODE_OAUTH_TOKEN (from `claude setup-token`).
+# Rubric: .github/ai-review/REVIEW.md   Project notes: .github/ai-review/CONTEXT.md
+# Optional settings for the publish check: .github/ai-review/surface.json
+
+name: AI Review
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: "What to review"
+        type: choice
+        options: [last-push, whole-repo]
+        default: last-push
+
+permissions:
+  contents: read
+  actions: read
+  issues: write
+
+concurrency:
+  group: ai-review-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  review:
+    name: AI Review
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Work out what to review
+        id: scope
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PUSH_BEFORE: ${{ github.event.before }}
+          REVIEW_SCOPE: ${{ github.event.inputs.scope || 'last-push' }}
+        run: bash .github/ai-review/prepare.sh
+
+      - name: Install gitleaks
+        env:
+          GITLEAKS_VERSION: "8.30.1"
+        run: |
+          set -euo pipefail
+          base="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}"
+          tgz="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          cd "$RUNNER_TEMP"
+          curl -sSfL --retry 3 -o "$tgz" "$base/$tgz"
+          curl -sSfL --retry 3 -o checksums.txt "$base/gitleaks_${GITLEAKS_VERSION}_checksums.txt"
+          grep " ${tgz}\$" checksums.txt | sha256sum -c -
+          tar -xzf "$tgz" gitleaks
+          sudo install -m 0755 gitleaks /usr/local/bin/gitleaks
+          gitleaks version
+
+      - name: Plain checks (deploy surface, secrets, dependencies)
+        env:
+          REVIEW_BASE: ${{ steps.scope.outputs.base }}
+          REVIEW_MODE: ${{ steps.scope.outputs.mode }}
+        run: python3 .github/ai-review/checks.py
+
+      - name: Run the AI review
+        id: review
+        if: steps.scope.outputs.skip != 'true'
+        uses: anthropics/claude-code-action/base-action@v1
+        with:
+          prompt_file: ${{ github.workspace }}/.ai-review-run/prompt.md
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: |
+            --allowedTools "Read,Glob,Grep,Bash(git diff:*),Bash(git log:*),Bash(git show:*)"
+            --disallowedTools "Edit,Write,NotebookEdit,WebFetch,WebSearch"
+            --max-turns 60
+            --json-schema '{"type":"object","properties":{"verdict":{"type":"string","enum":["pass","block"]},"summary":{"type":"string"},"findings":{"type":"array","items":{"type":"object","properties":{"severity":{"type":"string","enum":["critical","high","medium","low"]},"category":{"type":"string","enum":["injection","xss","ssrf","auth","secrets","data-integrity","architecture","dependency"]},"file":{"type":"string"},"line":{"type":"integer"},"title":{"type":"string"},"detail":{"type":"string"},"fix":{"type":"string"}},"required":["severity","category","file","line","title","detail","fix"]}}},"required":["verdict","summary","findings"]}'
+
+      - name: Enforce the verdict
+        if: ${{ !cancelled() && steps.scope.outcome == 'success' }}
+        env:
+          REVIEW_JSON: ${{ steps.review.outputs.structured_output }}
+          REVIEW_RANGE: ${{ steps.scope.outputs.range }}
+          AI_SKIPPED: ${{ steps.scope.outputs.skip }}
+          GH_TOKEN: ${{ github.token }}
+        run: python3 .github/ai-review/enforce.py
+
+      - name: Explain a review that could not run
+        if: failure() && steps.review.outcome == 'failure'
+        run: |
+          {
+            echo "## AI Review could not run"
+            echo
+            echo "The deploy is held because the review itself did not finish — this is not a code finding."
+            echo
+            echo "Usual causes: the CLAUDE_CODE_OAUTH_TOKEN secret is missing or expired (make a new one with \`claude setup-token\`), or the Claude plan hit its usage limit."
+            echo
+            echo "To ship anyway: re-run this job once the cause is fixed, or promote the deployment by hand in Vercel / use Deploy Latest Commit in Railway."
+          } >> "$GITHUB_STEP_SUMMARY"
